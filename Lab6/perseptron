@@ -1,0 +1,59 @@
+
+# Импорт необходимых библиотек
+import numpy as np
+from keras.models import Sequential
+from keras.layers import Dense, Flatten
+from keras.datasets import mnist
+from keras.utils import to_categorical
+import matplotlib.pyplot as plt
+
+# Загрузка и предобработка данных
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+#Нормализация
+x_train = x_train.astype('float32') / 255.0
+x_test = x_test.astype('float32') / 255.0
+
+
+y_train_cat = to_categorical(y_train, 10)
+y_test_cat = to_categorical(y_test, 10)
+
+# Построение модели многослойного персептрона
+model = Sequential()
+model.add(Flatten(input_shape=(28, 28, 1)))
+model.add(Dense(128, activation='relu'))
+model.add(Dense(64, activation='relu'))
+model.add(Dense(10, activation='softmax'))
+
+# Компиляция модели
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+# Обучение модели
+model.fit(x_train, y_train_cat, epochs=1, batch_size=32, validation_split=0.2)
+
+# Оценка модели на тестовых данных
+test_loss, test_acc = model.evaluate(x_test, y_test_cat)
+print(f'Test accuracy: {test_acc}')
+
+#Распознание всей тестовой выборки
+pred = model.predict(x_test)
+pred = np.argmax(pred,axis=1)
+
+print(pred.shape)
+
+print(pred[:20])
+print(y_test[:20])
+
+#Неверные результаты
+
+mask = pred == y_test
+print(mask[:10])
+
+x_false = x_test[~mask]
+p_false = pred[~mask]
+
+print(x_false.shape)
+
+for i in range(5):
+    print('Значение сети'+str(p_false[i]))
+    plt.imshow(x_false)
+    plt.show()
